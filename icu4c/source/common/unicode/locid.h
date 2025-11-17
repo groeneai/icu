@@ -1181,16 +1181,16 @@ private:
         static constexpr size_t SIZE = 32;
 
         ELocaleType type = eNEST;
-        char language[4];
-        char script[5];
-        char region[4];
-        uint8_t variantBegin;
+        char language[4] = {};
+        char script[5] = {};
+        char region[4] = {};
+        uint8_t variantBegin = 0;
         char baseName[SIZE -
                       sizeof type -
                       sizeof language -
                       sizeof script -
                       sizeof region -
-                      sizeof variantBegin];
+                      sizeof variantBegin] = {};
 
         const char* getLanguage() const { return language; }
         const char* getScript() const { return script; }
