@@ -56,6 +56,13 @@
 #include "utf8collationiterator.h"
 #include "uvectr64.h"
 
+// Excludes a local from -ftrivial-auto-var-init; only for locals that are written before they are read.
+#if UPRV_HAS_ATTRIBUTE(uninitialized)
+#   define UPRV_UNINITIALIZED __attribute__((uninitialized))
+#else
+#   define UPRV_UNINITIALIZED
+#endif
+
 U_NAMESPACE_BEGIN
 
 namespace {
@@ -1177,13 +1184,15 @@ RuleBasedCollator::doCompare(const uint8_t *left, int32_t leftLength,
     }
 
     if(result == CollationFastLatin::BAIL_OUT_RESULT) {
+        // The constructors set all state that is read before it is written,
+        // and the CE buffer is read only below its length.
         if(settings->dontCheckFCD()) {
-            UTF8CollationIterator leftIter(data, numeric, left, equalPrefixLength, leftLength);
-            UTF8CollationIterator rightIter(data, numeric, right, equalPrefixLength, rightLength);
+            UPRV_UNINITIALIZED UTF8CollationIterator leftIter(data, numeric, left, equalPrefixLength, leftLength);
+            UPRV_UNINITIALIZED UTF8CollationIterator rightIter(data, numeric, right, equalPrefixLength, rightLength);
             result = CollationCompare::compareUpToQuaternary(leftIter, rightIter, *settings, errorCode);
         } else {
-            FCDUTF8CollationIterator leftIter(data, numeric, left, equalPrefixLength, leftLength);
-            FCDUTF8CollationIterator rightIter(data, numeric, right, equalPrefixLength, rightLength);
+            UPRV_UNINITIALIZED FCDUTF8CollationIterator leftIter(data, numeric, left, equalPrefixLength, leftLength);
+            UPRV_UNINITIALIZED FCDUTF8CollationIterator rightIter(data, numeric, right, equalPrefixLength, rightLength);
             result = CollationCompare::compareUpToQuaternary(leftIter, rightIter, *settings, errorCode);
         }
     }
